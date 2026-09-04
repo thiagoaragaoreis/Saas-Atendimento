@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instalacao do Sistema</title>
+<link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="logo">Atendimento SaaS</div>
+    <div class="subtitle">Assistente de instalacao</div>
+  </div>
+
+  <div class="steps" id="stepsIndicator">
+    <div class="dot" data-step="1">1</div>
+    <div class="dot" data-step="2">2</div>
+    <div class="dot" data-step="3">3</div>
+    <div class="dot" data-step="4">4</div>
+    <div class="dot" data-step="5">5</div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Passo 1: Boas vindas -->
+  <section class="step" data-step="1">
+    <h1>Bem-vindo!</h1>
+    <p class="desc">
+      Vamos configurar seu sistema de atendimento em poucos passos: dados da
+      clinica, usuario administrador e conexao com o WhatsApp.
+    </p>
+    <div class="actions">
+      <button class="btn btn-primary" id="btnStart">Comecar</button>
+    </div>
+  </section>
+
+  <!-- Passo 2: Dados da clinica -->
+  <section class="step" data-step="2">
+    <h1>Dados da clinica</h1>
+    <p class="desc">Como sua clinica ou comercio deve aparecer no sistema?</p>
+    <label for="companyName">Nome da clinica/empresa</label>
+    <input id="companyName" type="text" placeholder="Ex: Clinica Vida Saudavel" />
+    <div class="actions">
+      <button class="btn btn-secondary" data-back>Voltar</button>
+      <button class="btn btn-primary" id="btnCompanyNext">Proximo</button>
+    </div>
+  </section>
+
+  <!-- Passo 3: Usuario administrador -->
+  <section class="step" data-step="3">
+    <h1>Usuario administrador</h1>
+    <p class="desc">Esse sera o login usado para acessar o painel de atendimento.</p>
+    <label for="adminName">Nome</label>
+    <input id="adminName" type="text" placeholder="Seu nome" />
+    <label for="adminEmail">E-mail</label>
+    <input id="adminEmail" type="email" placeholder="voce@clinica.com" />
+    <label for="adminPassword">Senha</label>
+    <input id="adminPassword" type="password" placeholder="Minimo 6 caracteres" />
+    <label for="adminPasswordConfirm">Confirmar senha</label>
+    <input id="adminPasswordConfirm" type="password" placeholder="Repita a senha" />
+    <div class="actions">
+      <button class="btn btn-secondary" data-back>Voltar</button>
+      <button class="btn btn-primary" id="btnAdminNext">Proximo</button>
+    </div>
+  </section>
+
+  <!-- Passo 4: Conectar WhatsApp -->
+  <section class="step" data-step="4">
+    <h1>Conectar WhatsApp</h1>
+    <p class="desc">Escaneie o QR Code no aplicativo do WhatsApp (Aparelhos conectados) para ativar o atendimento automatico.</p>
+    <div class="qr-wrap">
+      <div class="qr-placeholder" id="qrPlaceholder">Gerando QR Code...</div>
+      <img id="qrImage" alt="QR Code do WhatsApp" style="display:none" />
+      <div class="qr-status" id="qrStatus">Aguardando conexao...</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" data-back>Voltar</button>
+      <button class="btn btn-primary" id="btnWhatsappNext">Continuar</button>
+    </div>
+  </section>
+
+  <!-- Passo 5: Finalizar -->
+  <section class="step" data-step="5">
+    <h1>Tudo pronto!</h1>
+    <p class="desc">Confira os dados antes de finalizar a instalacao.</p>
+    <div class="summary" id="summaryBox"></div>
+    <div class="actions">
+      <button class="btn btn-secondary" data-back>Voltar</button>
+      <button class="btn btn-primary" id="btnFinish">Concluir instalacao</button>
+    </div>
+  </section>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/install.js"></script>
+</body>
+</html>

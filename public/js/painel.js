@@ -71,6 +71,10 @@
       headers: { "Content-Type": "application/json" },
       ...options,
     });
+    if (res.status === 401) {
+      window.location.href = "/login";
+      throw new Error("Sessao expirada");
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(err.error || "Erro na requisicao");
@@ -78,6 +82,24 @@
     if (res.status === 204) return null;
     return res.json();
   }
+
+  // ---------- Usuario logado ----------
+  const userNameEl = document.getElementById("userName");
+  const btnLogout = document.getElementById("btnLogout");
+
+  async function loadCurrentUser() {
+    try {
+      const user = await api("/api/auth/me");
+      userNameEl.textContent = user.name;
+    } catch (e) {
+      // api() ja redireciona para /login em caso de 401
+    }
+  }
+
+  btnLogout.addEventListener("click", async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  });
 
   // ---------- Lista de tickets ----------
   async function loadTickets() {
@@ -345,6 +367,7 @@
   }
 
   // ---------- Inicializacao ----------
+  loadCurrentUser();
   loadTickets();
   setInterval(loadTickets, 15000);
 })();

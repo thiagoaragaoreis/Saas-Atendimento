@@ -16,6 +16,25 @@ model Company {
   contacts     Contact[]
   tickets      Ticket[]
   appointments Appointment[]
+  users        User[]
+}
+
+// Linha unica (id fixo = 1) que guarda o estado global de instalacao do sistema.
+model Setting {
+  id        Int      @id @default(1)
+  installed Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin") // admin, attendant
+  companyId    Int
+  company      Company  @relation(fields: [companyId], references: [id])
+  createdAt    DateTime @default(now())
 }
 
 model Contact {

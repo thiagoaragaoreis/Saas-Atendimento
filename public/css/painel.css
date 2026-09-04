@@ -42,6 +42,14 @@ html, body { height: 100%; font-family: "Segoe UI", Arial, sans-serif; color: va
 .conn-offline { background: #fee2e2; color: var(--red); }
 .conn-online { background: #dcfce7; color: var(--green); }
 
+.user-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; border-bottom: 1px solid var(--border); background: #fafbfc;
+}
+.user-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-link { background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
+.btn-link:hover { text-decoration: underline; }
+
 .search-box { padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .search-box input {
   width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none;

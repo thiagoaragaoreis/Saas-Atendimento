@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Entrar</title>
+<link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="logo">Atendimento SaaS</div>
+    <div class="subtitle">Painel de atendimento</div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <form id="loginForm">
+    <label for="email">E-mail</label>
+    <input id="email" type="email" placeholder="voce@clinica.com" required />
+    <label for="password">Senha</label>
+    <input id="password" type="password" placeholder="Sua senha" required />
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary" id="btnLogin">Entrar</button>
+    </div>
+  </form>
+</div>
+
+<script src="/js/login.js"></script>
+</body>
+</html>

@@ -1,12 +1,34 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+const DEMO_ADMIN_EMAIL = "admin@clinica.com";
+const DEMO_ADMIN_PASSWORD = "admin123";
 
 async function main() {
   const company = await prisma.company.upsert({
     where: { id: 1 },
     update: {},
     create: { id: 1, name: "Clinica Vida Saudavel" },
+  });
+
+  const passwordHash = await bcrypt.hash(DEMO_ADMIN_PASSWORD, 10);
+  await prisma.user.upsert({
+    where: { email: DEMO_ADMIN_EMAIL },
+    update: {},
+    create: {
+      name: "Administrador Demo",
+      email: DEMO_ADMIN_EMAIL,
+      passwordHash,
+      companyId: company.id,
+    },
+  });
+
+  await prisma.setting.upsert({
+    where: { id: 1 },
+    update: { installed: true },
+    create: { id: 1, installed: true },
   });
 
   const contacts = await Promise.all(
@@ -59,6 +81,7 @@ async function main() {
   }
 
   console.log("Seed concluido.");
+  console.log(`Login de demonstracao: ${DEMO_ADMIN_EMAIL} / ${DEMO_ADMIN_PASSWORD}`);
 }
 
 main()
