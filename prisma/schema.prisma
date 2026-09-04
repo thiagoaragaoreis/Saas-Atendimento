@@ -17,6 +17,7 @@ model Company {
   tickets      Ticket[]
   appointments Appointment[]
   users        User[]
+  queues       Queue[]
 }
 
 // Linha unica (id fixo = 1) que guarda o estado global de instalacao do sistema.
@@ -31,10 +32,27 @@ model User {
   name         String
   email        String   @unique
   passwordHash String
-  role         String   @default("admin") // admin, attendant
+  role         String   @default("attendant") // admin, attendant
   companyId    Int
   company      Company  @relation(fields: [companyId], references: [id])
+  queues       Queue[]  @relation("UserQueues")
   createdAt    DateTime @default(now())
+}
+
+// Fila/departamento de atendimento (ex: Recepcao, Financeiro). O contato
+// escolhe a fila respondendo o menu automatico enviado pelo bot no primeiro
+// contato; cada atendente so ve/responde tickets das filas liberadas pra ele.
+model Queue {
+  id          Int      @id @default(autoincrement())
+  name        String
+  menuOption  String // opcao digitada no menu do WhatsApp, ex: "1"
+  companyId   Int
+  company     Company  @relation(fields: [companyId], references: [id])
+  users       User[]   @relation("UserQueues")
+  tickets     Ticket[]
+  createdAt   DateTime @default(now())
+
+  @@unique([companyId, menuOption])
 }
 
 model Contact {
@@ -59,6 +77,8 @@ model Ticket {
   company        Company   @relation(fields: [companyId], references: [id])
   contactId      Int
   contact        Contact   @relation(fields: [contactId], references: [id])
+  queueId        Int? // nulo enquanto aguarda o contato escolher a fila no menu do bot
+  queue          Queue?    @relation(fields: [queueId], references: [id])
   messages       Message[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

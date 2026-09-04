@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Administracao</title>
+<link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+<div class="topbar">
+  <h1>Administracao</h1>
+  <a href="/">&larr; Voltar ao painel</a>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="users">Usuarios</button>
+    <button class="tab-btn" data-tab="queues">Filas</button>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- ===== Usuarios ===== -->
+  <section class="panel active" id="panel-users">
+    <div class="form-card hidden" id="userFormCard">
+      <h3 id="userFormTitle">Novo usuario</h3>
+      <input type="hidden" id="userId" />
+      <div class="form-row">
+        <div>
+          <label for="userName">Nome</label>
+          <input type="text" id="userName" />
+        </div>
+        <div>
+          <label for="userEmail">E-mail</label>
+          <input type="email" id="userEmail" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label for="userPassword">Senha <span id="userPasswordHint"></span></label>
+          <input type="password" id="userPassword" placeholder="Minimo 6 caracteres" />
+        </div>
+        <div>
+          <label for="userRole">Papel</label>
+          <select id="userRole">
+            <option value="attendant">Atendente</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Filas que pode atender</label>
+          <div class="checkbox-group" id="userQueueCheckboxes"></div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btnSaveUser">Salvar</button>
+        <button class="btn btn-secondary" id="btnCancelUser">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2>Usuarios do painel</h2>
+      <button class="btn btn-primary" id="btnNewUser">+ Novo usuario</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Filas</th><th></th></tr>
+      </thead>
+      <tbody id="usersTableBody"></tbody>
+    </table>
+  </section>
+
+  <!-- ===== Filas ===== -->
+  <section class="panel" id="panel-queues">
+    <div class="form-card hidden" id="queueFormCard">
+      <h3 id="queueFormTitle">Nova fila</h3>
+      <input type="hidden" id="queueId" />
+      <div class="form-row">
+        <div>
+          <label for="queueName">Nome da fila</label>
+          <input type="text" id="queueName" placeholder="Ex: Recepcao" />
+        </div>
+        <div>
+          <label for="queueMenuOption">Opcao no menu do WhatsApp</label>
+          <input type="text" id="queueMenuOption" placeholder="Ex: 1" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btnSaveQueue">Salvar</button>
+        <button class="btn btn-secondary" id="btnCancelQueue">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2>Filas de atendimento</h2>
+      <button class="btn btn-primary" id="btnNewQueue">+ Nova fila</button>
+    </div>
+
+    <p class="empty-hint" id="queueHint">
+      Quando ha pelo menos uma fila cadastrada, o WhatsApp envia automaticamente
+      um menu ao primeiro contato ("Digite 1 para Recepcao, 2 para..."), e o
+      ticket so fica visivel para atendentes com permissao naquela fila.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Nome</th><th>Opcao no menu</th><th></th></tr>
+      </thead>
+      <tbody id="queuesTableBody"></tbody>
+    </table>
+  </section>
+</div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

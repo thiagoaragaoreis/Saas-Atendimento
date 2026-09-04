@@ -69,7 +69,7 @@ router.post("/admin", async (req, res) => {
     const user = existingAdmin
       ? await prisma.user.update({
           where: { id: existingAdmin.id },
-          data: { name: name.trim(), email: email.trim().toLowerCase(), passwordHash },
+          data: { name: name.trim(), email: email.trim().toLowerCase(), passwordHash, role: "admin" },
         })
       : await prisma.user.create({
           data: {
@@ -77,6 +77,7 @@ router.post("/admin", async (req, res) => {
             email: email.trim().toLowerCase(),
             passwordHash,
             companyId: company.id,
+            role: "admin",
           },
         });
 

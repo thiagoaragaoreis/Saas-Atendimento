@@ -22,8 +22,22 @@ async function main() {
       email: DEMO_ADMIN_EMAIL,
       passwordHash,
       companyId: company.id,
+      role: "admin",
     },
   });
+
+  await Promise.all(
+    [
+      { name: "Recepcao", menuOption: "1" },
+      { name: "Financeiro", menuOption: "2" },
+    ].map((q) =>
+      prisma.queue.upsert({
+        where: { companyId_menuOption: { companyId: company.id, menuOption: q.menuOption } },
+        update: {},
+        create: { ...q, companyId: company.id },
+      })
+    )
+  );
 
   await prisma.setting.upsert({
     where: { id: 1 },

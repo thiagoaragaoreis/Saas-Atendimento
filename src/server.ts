@@ -10,6 +10,7 @@ import { setIo } from "./socket/io";
 import { startWbot } from "./wbot";
 import { startReminderJob } from "./jobs/ReminderJob";
 import { gate } from "./middleware/gate";
+import { attachCurrentUser } from "./middleware/currentUser";
 import { isInstalled } from "./lib/settings";
 
 import ticketsRouter from "./routes/tickets";
@@ -19,6 +20,8 @@ import contactsRouter from "./routes/contacts";
 import tvRouter from "./routes/tv";
 import installRouter from "./routes/install";
 import authRouter from "./routes/auth";
+import usersRouter from "./routes/users";
+import queuesRouter from "./routes/queues";
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +42,7 @@ app.use(
 );
 
 app.use(gate);
+app.use(attachCurrentUser);
 
 app.get("/install", async (_req, res) => {
   if (await isInstalled()) return res.redirect("/login");
@@ -58,6 +62,11 @@ app.get("/tv", (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "tv.html"));
 });
 
+app.get("/admin", (req, res) => {
+  if (req.currentUser?.role !== "admin") return res.redirect("/");
+  res.sendFile(path.join(PUBLIC_DIR, "admin.html"));
+});
+
 app.use(express.static(PUBLIC_DIR));
 
 app.use("/api/install", installRouter);
@@ -67,6 +76,8 @@ app.use("/api", messagesRouter);
 app.use("/api/appointments", appointmentsRouter);
 app.use("/api/contacts", contactsRouter);
 app.use("/api/tv", tvRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/queues", queuesRouter);
 
 io.on("connection", (socket) => {
   console.log("[socket] Cliente conectado:", socket.id);

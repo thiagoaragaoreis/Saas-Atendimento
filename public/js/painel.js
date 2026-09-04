@@ -6,7 +6,10 @@
   const state = {
     statusFilter: "open",
     search: "",
+    queueFilter: "",
     tickets: [],
+    queues: [],
+    currentUser: null,
     currentTicket: null,
     searchTimer: null,
   };
@@ -17,11 +20,15 @@
   const tabs = document.querySelectorAll(".tab");
   const connStatus = document.getElementById("connStatus");
 
+  const queueFilterSelect = document.getElementById("queueFilter");
+  const adminLink = document.getElementById("adminLink");
+
   const chatEmpty = document.getElementById("chatEmpty");
   const chatContent = document.getElementById("chatContent");
   const chatAvatar = document.getElementById("chatAvatar");
   const chatName = document.getElementById("chatName");
   const chatNumber = document.getElementById("chatNumber");
+  const chatQueueBadge = document.getElementById("chatQueueBadge");
   const messagesList = document.getElementById("messagesList");
   const sendForm = document.getElementById("sendForm");
   const sendInput = document.getElementById("sendInput");
@@ -90,7 +97,9 @@
   async function loadCurrentUser() {
     try {
       const user = await api("/api/auth/me");
+      state.currentUser = user;
       userNameEl.textContent = user.name;
+      if (user.role === "admin") adminLink.classList.remove("hidden");
     } catch (e) {
       // api() ja redireciona para /login em caso de 401
     }
@@ -101,11 +110,29 @@
     window.location.href = "/login";
   });
 
+  // ---------- Filas ----------
+  async function loadQueues() {
+    try {
+      state.queues = await api("/api/queues");
+      queueFilterSelect.innerHTML =
+        `<option value="">Todas as filas</option>` +
+        state.queues.map((q) => `<option value="${q.id}">${escapeHtml(q.name)}</option>`).join("");
+    } catch (e) {
+      // silencioso: filtro de fila e opcional
+    }
+  }
+
+  queueFilterSelect.addEventListener("change", () => {
+    state.queueFilter = queueFilterSelect.value;
+    loadTickets();
+  });
+
   // ---------- Lista de tickets ----------
   async function loadTickets() {
     const params = new URLSearchParams();
     if (state.statusFilter) params.set("status", state.statusFilter);
     if (state.search) params.set("search", state.search);
+    if (state.queueFilter) params.set("queueId", state.queueFilter);
 
     const tickets = await api(`/api/tickets?${params.toString()}`);
     state.tickets = tickets;
@@ -130,6 +157,7 @@
               ${unread}
             </div>
             <span class="status-chip status-${t.status}">${statusLabel(t.status)}</span>
+            ${t.queue ? `<span class="queue-chip">${escapeHtml(t.queue.name)}</span>` : ""}
           </div>
         </li>`;
       })
@@ -162,6 +190,12 @@
     chatAvatar.textContent = initials(ticket.contact.name);
     chatName.textContent = ticket.contact.name;
     chatNumber.textContent = ticket.contact.number;
+    if (ticket.queue) {
+      chatQueueBadge.textContent = ticket.queue.name;
+      chatQueueBadge.classList.remove("hidden");
+    } else {
+      chatQueueBadge.classList.add("hidden");
+    }
 
     const messages = await api(`/api/tickets/${ticketId}/messages`);
     renderMessages(messages);
@@ -322,7 +356,18 @@
     }
   });
 
+  // Os eventos de socket sao globais (nao filtrados por fila no servidor);
+  // aqui garantimos que o atendente so veja em tempo real os tickets das
+  // filas que ele tem permissao (admin ve tudo).
+  function canSeeTicket(ticket) {
+    if (!state.currentUser) return false;
+    if (state.currentUser.role === "admin") return true;
+    return ticket.queueId != null && state.currentUser.queueIds.includes(ticket.queueId);
+  }
+
   socket.on("ticket:message", (data) => {
+    if (!canSeeTicket(data.ticket)) return;
+
     const idx = state.tickets.findIndex((t) => t.id === data.ticket.id);
     if (idx >= 0) {
       state.tickets[idx] = data.ticket;
@@ -338,6 +383,12 @@
   });
 
   socket.on("ticket:update", (ticket) => {
+    if (!canSeeTicket(ticket)) {
+      state.tickets = state.tickets.filter((t) => t.id !== ticket.id);
+      renderTicketList();
+      return;
+    }
+
     const idx = state.tickets.findIndex((t) => t.id === ticket.id);
     if (idx >= 0) {
       state.tickets[idx] = ticket;
@@ -368,6 +419,7 @@
 
   // ---------- Inicializacao ----------
   loadCurrentUser();
+  loadQueues();
   loadTickets();
   setInterval(loadTickets, 15000);
 })();

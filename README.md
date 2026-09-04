@@ -92,7 +92,8 @@ agendamento de exemplo) sem passar pelo assistente:
 npm run seed
 ```
 
-Isso ja marca o sistema como instalado e cria o login:
+Isso ja marca o sistema como instalado, cria as filas "Recepcao" (opcao 1) e
+"Financeiro" (opcao 2), e o login:
 
 ```
 E-mail: admin@clinica.com
@@ -104,8 +105,49 @@ Senha:  admin123
 - `/install` — assistente de instalacao (bloqueado apos concluido)
 - `/login` — login do painel
 - `/` — Painel de Atendimento (Mini-CRM): lista de tickets, chat e agendamentos
+- `/admin` — gerenciamento de usuarios e filas (somente administradores)
 - `/tv` — Painel de recepcao (fila + midia institucional), acesso publico
   para exibir em TV na sala de espera
+
+## Usuarios, filas e permissoes
+
+O usuario criado no assistente de instalacao e sempre **administrador**. A
+partir do painel, um administrador pode acessar **Gerenciar** (`/admin`) para:
+
+- **Filas** — criar departamentos de atendimento (ex: Recepcao, Financeiro,
+  Exames), cada um com um numero de opcao de menu (ex: "1", "2").
+- **Usuarios** — criar atendentes com login proprio (nome, e-mail, senha) e
+  marcar quais filas cada um pode ver e responder.
+
+### Como um ticket cai em uma fila
+
+Assim que existe pelo menos uma fila cadastrada, o bot passa a enviar
+automaticamente um menu para todo contato novo (ou toda mensagem enquanto o
+ticket ainda nao tem fila definida):
+
+```
+Ola! Para qual area voce deseja falar?
+1 - Recepcao
+2 - Financeiro
+
+Digite o numero da opcao desejada.
+```
+
+Quando o contato responde com um numero valido, o ticket e associado aquela
+fila e o bot confirma automaticamente. Se nenhuma fila estiver cadastrada, o
+sistema funciona como antes (sem menu, qualquer administrador atende).
+
+### Quem ve o que
+
+- **Administrador**: ve e responde todos os tickets, de qualquer fila,
+  inclusive os que ainda aguardam o contato escolher uma opcao no menu.
+- **Atendente**: so ve/responde tickets das filas em que tem permissao. Um
+  atendente sem nenhuma fila liberada nao ve tickets nenhum. O filtro de fila
+  no topo do painel deixa alternar entre as filas permitidas.
+
+> A permissao e sempre verificada no servidor (API), tanto na listagem quanto
+> nas telas de administracao — o filtro no navegador e so uma conveniencia de
+> visualizacao.
 
 ## Rodando em producao (exemplo com PM2)
 
@@ -124,22 +166,24 @@ servindo por HTTPS.
 
 ```
 src/
-  server.ts            Bootstrap do Express + Socket.io + sessao
-  wbot.ts               Conexao com o WhatsApp via Baileys
-  jobs/ReminderJob.ts   Cron de lembretes de consulta (D-1)
-  middleware/gate.ts    Redireciona para /install ou /login conforme o estado
-  routes/                Rotas REST (tickets, mensagens, agendamentos, TV,
-                          instalacao, autenticacao)
-  socket/io.ts           Instancia compartilhada do Socket.io
+  server.ts               Bootstrap do Express + Socket.io + sessao
+  wbot.ts                  Conexao com o WhatsApp via Baileys + menu de filas
+  jobs/ReminderJob.ts      Cron de lembretes de consulta (D-1)
+  middleware/gate.ts       Redireciona para /install ou /login conforme o estado
+  middleware/currentUser.ts Carrega o usuario logado (papel + filas) e o requireAdmin
+  routes/                   Rotas REST (tickets, mensagens, agendamentos, TV,
+                             instalacao, autenticacao, usuarios, filas)
+  socket/io.ts              Instancia compartilhada do Socket.io
 prisma/
-  schema.prisma         Modelo multilocatario (Company, Contact, Ticket,
-                         Message, Appointment, User, Setting)
-  seed.ts               Dados de demonstracao + usuario admin de teste
+  schema.prisma            Modelo multilocatario (Company, Contact, Ticket,
+                            Message, Appointment, User, Setting, Queue)
+  seed.ts                  Dados de demonstracao + usuario admin de teste
 public/
-  painel.html/css/js    Painel de atendimento (Mini-CRM)
-  tv.html                Painel de recepcao
-  install.html/js        Assistente de instalacao
-  login.html/js          Tela de login
+  painel.html/css/js       Painel de atendimento (Mini-CRM)
+  admin.html/css/js        Gerenciamento de usuarios e filas
+  tv.html                   Painel de recepcao
+  install.html/js           Assistente de instalacao
+  login.html/js             Tela de login
 ```
 
 ## Migrando para PostgreSQL

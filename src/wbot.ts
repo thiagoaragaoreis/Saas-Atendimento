@@ -25,9 +25,7 @@ function jidToNumber(jid: string): string {
   return jid.replace(/@s\.whatsapp\.net$/, "").replace(/@g\.us$/, "");
 }
 
-async function upsertContactAndTicket(number: string, name: string) {
-  const companyId = await getDefaultCompanyId();
-
+async function upsertContactAndTicket(companyId: number, number: string, name: string) {
   const contact = await prisma.contact.upsert({
     where: { number_companyId: { number, companyId } },
     update: { name },
@@ -46,6 +44,103 @@ async function upsertContactAndTicket(number: string, name: string) {
   }
 
   return { contact, ticket };
+}
+
+function buildQueueMenuText(queues: { name: string; menuOption: string }[]): string {
+  const options = queues.map((q) => `${q.menuOption} - ${q.name}`).join("\n");
+  return `Ola! Para qual area voce deseja falar?\n${options}\n\nDigite o numero da opcao desejada.`;
+}
+
+// Envia texto pelo WhatsApp e ja registra como mensagem do ticket (fromMe).
+// Falhas de envio sao logadas mas nao interrompem o fluxo (a mensagem fica
+// registrada no historico mesmo que o WhatsApp esteja temporariamente fora).
+async function sendBotMessage(ticketId: number, number: string, text: string): Promise<void> {
+  try {
+    await sendWhatsappMessage(number, text);
+  } catch (err) {
+    console.error("[wbot] Falha ao enviar mensagem automatica:", err);
+  }
+
+  const message = await prisma.message.create({
+    data: { body: text, fromMe: true, read: true, ticketId },
+  });
+  const ticket = await prisma.ticket.findUnique({ where: { id: ticketId }, include: { contact: true } });
+  getIo().emit("ticket:message", { ticket, message });
+}
+
+// Tenta confirmar uma consulta pendente de lembrete (paciente respondeu "1"
+// apos o lembrete enviado por ReminderJob). Retorna true se confirmou algo,
+// para o chamador saber que essa mensagem ja foi tratada e nao deve ser
+// interpretada como escolha de fila.
+async function tryConfirmAppointment(contactId: number, body: string): Promise<boolean> {
+  if (body.trim() !== "1") return false;
+
+  const appointment = await prisma.appointment.findFirst({
+    where: { contactId, status: "scheduled", reminderSentAt: { not: null } },
+    orderBy: { date: "asc" },
+  });
+
+  if (!appointment) return false;
+
+  const updated = await prisma.appointment.update({
+    where: { id: appointment.id },
+    data: { status: "confirmed" },
+    include: { contact: true },
+  });
+
+  getIo().emit("appointment:update", updated);
+  return true;
+}
+
+// Processa uma mensagem recebida de um contato: cria/atualiza contato e
+// ticket, trata confirmacao de consulta e o menu automatico de filas.
+// Isolada do binding do Baileys para poder ser testada diretamente.
+export async function handleIncomingMessage(
+  companyId: number,
+  number: string,
+  name: string,
+  body: string
+): Promise<void> {
+  const { contact, ticket } = await upsertContactAndTicket(companyId, number, name);
+
+  const message = await prisma.message.create({
+    data: { body, fromMe: false, ticketId: ticket.id },
+  });
+
+  let updatedTicket = await prisma.ticket.update({
+    where: { id: ticket.id },
+    data: { lastMessage: body, unreadMessages: { increment: 1 } },
+    include: { contact: true },
+  });
+
+  getIo().emit("ticket:message", { ticket: updatedTicket, message });
+  getIo().emit("ticket:update", updatedTicket);
+
+  const confirmedAppointment = await tryConfirmAppointment(contact.id, body);
+  if (confirmedAppointment) return;
+
+  if (updatedTicket.queueId) return; // ja esta em uma fila, segue fluxo normal de chat
+
+  const queues = await prisma.queue.findMany({ where: { companyId }, orderBy: { menuOption: "asc" } });
+  if (queues.length === 0) return; // empresa nao configurou filas: comportamento antigo (sem menu)
+
+  const chosen = queues.find((q) => q.menuOption === body.trim());
+
+  if (chosen) {
+    updatedTicket = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { queueId: chosen.id },
+      include: { contact: true },
+    });
+    getIo().emit("ticket:update", updatedTicket);
+    await sendBotMessage(
+      ticket.id,
+      number,
+      `Voce foi direcionado para *${chosen.name}*. Em breve um atendente ira te atender.`
+    );
+  } else {
+    await sendBotMessage(ticket.id, number, buildQueueMenuText(queues));
+  }
 }
 
 export async function startWbot(): Promise<void> {
@@ -100,46 +195,14 @@ export async function startWbot(): Promise<void> {
       const number = jidToNumber(jid);
       const name = msg.pushName || number;
 
-      const { ticket, contact } = await upsertContactAndTicket(number, name);
-
-      const message = await prisma.message.create({
-        data: { body, fromMe: false, ticketId: ticket.id },
-      });
-
-      if (body.trim() === "1") {
-        await confirmPendingAppointment(contact.id);
+      try {
+        const companyId = await getDefaultCompanyId();
+        await handleIncomingMessage(companyId, number, name, body);
+      } catch (err) {
+        console.error("[wbot] Falha ao processar mensagem recebida:", err);
       }
-
-      const updatedTicket = await prisma.ticket.update({
-        where: { id: ticket.id },
-        data: {
-          lastMessage: body,
-          unreadMessages: { increment: 1 },
-        },
-        include: { contact: true },
-      });
-
-      getIo().emit("ticket:message", { ticket: updatedTicket, message });
-      getIo().emit("ticket:update", updatedTicket);
     }
   });
-}
-
-async function confirmPendingAppointment(contactId: number): Promise<void> {
-  const appointment = await prisma.appointment.findFirst({
-    where: { contactId, status: "scheduled", reminderSentAt: { not: null } },
-    orderBy: { date: "asc" },
-  });
-
-  if (!appointment) return;
-
-  const updated = await prisma.appointment.update({
-    where: { id: appointment.id },
-    data: { status: "confirmed" },
-    include: { contact: true },
-  });
-
-  getIo().emit("appointment:update", updated);
 }
 
 export async function sendWhatsappMessage(number: string, text: string): Promise<void> {

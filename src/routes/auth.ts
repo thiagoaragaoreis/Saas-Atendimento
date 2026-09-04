@@ -25,7 +25,7 @@ router.post("/login", async (req, res) => {
   req.session.userId = user.id;
   req.session.companyId = user.companyId;
 
-  res.json({ id: user.id, name: user.name, email: user.email });
+  res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
 });
 
 // POST /api/auth/logout
@@ -37,17 +37,11 @@ router.post("/logout", (req, res) => {
 });
 
 // GET /api/auth/me
-router.get("/me", async (req, res) => {
-  if (!req.session.userId) {
+router.get("/me", (req, res) => {
+  if (!req.currentUser) {
     return res.status(401).json({ error: "Nao autenticado" });
   }
-
-  const user = await prisma.user.findUnique({ where: { id: req.session.userId } });
-  if (!user) {
-    return res.status(401).json({ error: "Nao autenticado" });
-  }
-
-  res.json({ id: user.id, name: user.name, email: user.email });
+  res.json(req.currentUser);
 });
 
 export default router;

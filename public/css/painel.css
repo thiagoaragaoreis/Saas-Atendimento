@@ -50,11 +50,16 @@ html, body { height: 100%; font-family: "Segoe UI", Arial, sans-serif; color: va
 .btn-link { background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
 .btn-link:hover { text-decoration: underline; }
 
-.search-box { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.search-box { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 .search-box input {
   width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none;
 }
 .search-box input:focus { border-color: var(--primary); }
+.queue-filter {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
+  color: var(--muted); background: #fff; outline: none; font-family: inherit;
+}
+.queue-filter:focus { border-color: var(--primary); }
 
 .tabs { display: flex; border-bottom: 1px solid var(--border); }
 .tab {
@@ -91,6 +96,15 @@ html, body { height: 100%; font-family: "Segoe UI", Arial, sans-serif; color: va
 .status-open { background: #dcfce7; color: var(--green); }
 .status-pending { background: #fef3c7; color: var(--amber); }
 .status-closed { background: #e5e7eb; color: var(--muted); }
+
+.queue-chip {
+  font-size: 10px; padding: 1px 6px; border-radius: 999px; font-weight: 700;
+  background: #ede9fe; color: #6d28d9; margin-left: 6px;
+}
+.queue-badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  background: #ede9fe; color: #6d28d9; margin-left: 10px;
+}
 
 /* ===== Coluna central: chat ===== */
 .chat-pane { flex: 1; display: flex; flex-direction: column; background: #eef1f5; min-width: 0; }
