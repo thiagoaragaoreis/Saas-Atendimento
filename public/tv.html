@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel de Recepcao</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0b1220; color: #fff; font-family: "Segoe UI", Arial, sans-serif; overflow: hidden; }
+  .layout { display: flex; height: 100vh; width: 100vw; }
+
+  .media-pane { width: 70%; height: 100%; position: relative; background: #000; }
+  .media-pane video { width: 100%; height: 100%; object-fit: cover; }
+  .media-pane .brand { position: absolute; top: 20px; left: 20px; font-size: 22px; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+
+  .queue-pane { width: 30%; height: 100%; background: linear-gradient(180deg, #101a30, #0b1220); display: flex; flex-direction: column; padding: 24px; }
+  .queue-pane h2 { font-size: 18px; text-transform: uppercase; letter-spacing: 2px; color: #7ea6ff; margin-bottom: 16px; }
+
+  .current-call { background: #16234a; border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px; border: 2px solid #2b3d70; transition: all .2s ease; }
+  .current-call .label { font-size: 14px; color: #9db2e8; text-transform: uppercase; letter-spacing: 2px; }
+  .current-call .senha { font-size: 64px; font-weight: 800; margin: 8px 0; color: #fff; }
+  .current-call .guiche { font-size: 18px; color: #cdd8f5; }
+  .current-call.flash { animation: pulse 1s ease-in-out 3; border-color: #4ade80; }
+
+  @keyframes pulse {
+    0%, 100% { background: #16234a; }
+    50% { background: #1f7a4d; }
+  }
+
+  .history { flex: 1; overflow-y: auto; }
+  .history h3 { font-size: 13px; color: #7ea6ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .history ul { list-style: none; }
+  .history li { display: flex; justify-content: space-between; padding: 10px 12px; background: #101a30; border-radius: 8px; margin-bottom: 8px; font-size: 15px; color: #cdd8f5; }
+  .history li span.senha { font-weight: 700; color: #fff; }
+
+  .clock { text-align: center; font-size: 14px; color: #6f83b8; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="media-pane">
+    <div class="brand">Clinica</div>
+    <video autoplay muted loop id="mediaVideo">
+      <source src="https://cdn.coverr.co/videos/coverr-in-a-medical-clinic-2633/1080p.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <div class="queue-pane">
+    <h2>Senha Atual</h2>
+    <div class="current-call" id="currentCall">
+      <div class="label">Aguardando chamada</div>
+      <div class="senha" id="senhaAtual">--</div>
+      <div class="guiche" id="guicheAtual">&nbsp;</div>
+    </div>
+
+    <div class="history">
+      <h3>Ultimas chamadas</h3>
+      <ul id="historyList"></ul>
+    </div>
+
+    <div class="clock" id="clock"></div>
+  </div>
+</div>
+
+<audio id="beep" src="data:audio/mp3;base64,//uQx" preload="auto"></audio>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const senhaAtualEl = document.getElementById("senhaAtual");
+  const guicheAtualEl = document.getElementById("guicheAtual");
+  const currentCallEl = document.getElementById("currentCall");
+  const historyList = document.getElementById("historyList");
+  const beep = document.getElementById("beep");
+
+  const history = [];
+
+  function speak(senha, guiche) {
+    try {
+      const utter = new SpeechSynthesisUtterance(`Senha ${senha}, guiche ${guiche}`);
+      utter.lang = "pt-BR";
+      window.speechSynthesis.speak(utter);
+    } catch (e) {
+      console.warn("SpeechSynthesis indisponivel", e);
+    }
+  }
+
+  socket.on("tv:chamada", (data) => {
+    senhaAtualEl.textContent = data.senha;
+    guicheAtualEl.textContent = "Guiche " + data.guiche;
+    currentCallEl.querySelector(".label").textContent = "Chamando agora";
+
+    currentCallEl.classList.remove("flash");
+    void currentCallEl.offsetWidth;
+    currentCallEl.classList.add("flash");
+
+    beep.play().catch(() => {});
+    speak(data.senha, data.guiche);
+
+    history.unshift(data);
+    history.splice(6);
+    renderHistory();
+  });
+
+  function renderHistory() {
+    historyList.innerHTML = history
+      .map(
+        (h) =>
+          `<li><span class="senha">${h.senha}</span><span>Guiche ${h.guiche}</span></li>`
+      )
+      .join("");
+  }
+
+  function tickClock() {
+    document.getElementById("clock").textContent = new Date().toLocaleString("pt-BR");
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+</script>
+</body>
+</html>

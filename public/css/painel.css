@@ -1,0 +1,158 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f0f2f5;
+  --sidebar: #ffffff;
+  --border: #e4e6ea;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --text: #111827;
+  --muted: #6b7280;
+  --green: #16a34a;
+  --amber: #d97706;
+  --red: #dc2626;
+}
+
+html, body { height: 100%; font-family: "Segoe UI", Arial, sans-serif; color: var(--text); background: var(--bg); }
+
+.app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+
+/* ===== Coluna esquerda: tickets ===== */
+.tickets-pane {
+  width: 320px;
+  min-width: 280px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pane-header h1 { font-size: 18px; }
+.pane-header h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+
+.conn-badge { font-size: 11px; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; font-weight: 600; }
+.conn-offline { background: #fee2e2; color: var(--red); }
+.conn-online { background: #dcfce7; color: var(--green); }
+
+.search-box { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.search-box input {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none;
+}
+.search-box input:focus { border-color: var(--primary); }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); }
+.tab {
+  flex: 1; padding: 10px 4px; background: none; border: none; cursor: pointer;
+  font-size: 12px; color: var(--muted); border-bottom: 2px solid transparent;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+.ticket-list { list-style: none; overflow-y: auto; flex: 1; }
+.ticket-item {
+  display: flex; gap: 10px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f2f3f5;
+  align-items: center;
+}
+.ticket-item:hover { background: #f7f8fa; }
+.ticket-item.active { background: #eaf1ff; }
+
+.ticket-item .avatar {
+  width: 42px; height: 42px; border-radius: 50%; background: var(--primary);
+  color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
+}
+
+.ticket-item .meta { flex: 1; min-width: 0; }
+.ticket-item .row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.ticket-item .name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket-item .time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+.ticket-item .preview { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.unread-badge {
+  background: var(--primary); color: #fff; font-size: 11px; font-weight: 700;
+  min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px;
+}
+
+.status-chip { font-size: 10px; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; font-weight: 700; }
+.status-open { background: #dcfce7; color: var(--green); }
+.status-pending { background: #fef3c7; color: var(--amber); }
+.status-closed { background: #e5e7eb; color: var(--muted); }
+
+/* ===== Coluna central: chat ===== */
+.chat-pane { flex: 1; display: flex; flex-direction: column; background: #eef1f5; min-width: 0; }
+
+.chat-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; }
+
+.chat-content { display: flex; flex-direction: column; height: 100%; }
+
+.chat-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; background: var(--sidebar); border-bottom: 1px solid var(--border);
+}
+
+.contact-info { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.contact-name { font-weight: 600; font-size: 15px; }
+.contact-number { font-size: 12px; color: var(--muted); }
+
+.chat-actions { display: flex; gap: 8px; }
+
+.messages-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+
+.bubble { max-width: 60%; padding: 8px 12px; border-radius: 10px; font-size: 14px; line-height: 1.4; position: relative; }
+.bubble.in { background: #fff; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 1px 1px rgba(0,0,0,.05); }
+.bubble.out { background: #d9fdd3; align-self: flex-end; border-bottom-right-radius: 2px; }
+.bubble .time { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; text-align: right; }
+
+.send-form { display: flex; gap: 10px; padding: 14px 20px; background: var(--sidebar); border-top: 1px solid var(--border); }
+.send-form input { flex: 1; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border); outline: none; font-size: 14px; }
+.send-form input:focus { border-color: var(--primary); }
+
+/* ===== Coluna direita: agendamento ===== */
+.schedule-pane {
+  width: 300px; min-width: 260px; background: var(--sidebar); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+
+.appointment-list { list-style: none; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.appointment-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.appointment-item .date { font-weight: 600; font-size: 13px; }
+.appointment-item .notes { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.appointment-item .row-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+
+.appointment-form { padding: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.appointment-form h3 { font-size: 13px; text-transform: uppercase; color: var(--muted); letter-spacing: .5px; }
+.appointment-form label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.appointment-form input, .appointment-form textarea {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; resize: vertical;
+}
+.appointment-form input:focus, .appointment-form textarea:focus { border-color: var(--primary); }
+
+/* ===== Botoes genericos ===== */
+.btn { border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: #f3f4f6; color: var(--text); }
+.btn-secondary:hover { background: #e5e7eb; }
+.btn-danger { background: #fee2e2; color: var(--red); }
+.btn-danger:hover { background: #fecaca; }
+.btn-block { width: 100%; }
+
+.hidden { display: none !important; }
+
+/* ===== QR overlay ===== */
+.qr-overlay {
+  position: fixed; inset: 0; background: rgba(17, 24, 39, .85); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+}
+.qr-box { background: #fff; border-radius: 16px; padding: 32px; text-align: center; max-width: 320px; }
+.qr-box h2 { margin-bottom: 8px; }
+.qr-box p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.qr-box img { width: 220px; height: 220px; border: 1px solid var(--border); border-radius: 8px; }
+.qr-status { margin-top: 12px; font-size: 13px; color: var(--muted); }

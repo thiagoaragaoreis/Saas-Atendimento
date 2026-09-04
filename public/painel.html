@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel de Atendimento</title>
+<link rel="stylesheet" href="/css/painel.css" />
+</head>
+<body>
+<div id="qrOverlay" class="qr-overlay hidden">
+  <div class="qr-box">
+    <h2>Conecte o WhatsApp</h2>
+    <p>Escaneie o QR Code no aplicativo do WhatsApp para iniciar o atendimento.</p>
+    <img id="qrImage" alt="QR Code do WhatsApp" />
+    <div id="qrStatus" class="qr-status">Aguardando leitura...</div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- Coluna esquerda: lista de tickets -->
+  <aside class="tickets-pane">
+    <header class="pane-header">
+      <h1>Atendimentos</h1>
+      <span id="connStatus" class="conn-badge conn-offline">offline</span>
+    </header>
+
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="Buscar por nome ou numero..." />
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-status="open">Abertos</button>
+      <button class="tab" data-status="pending">Pendentes</button>
+      <button class="tab" data-status="closed">Fechados</button>
+      <button class="tab" data-status="all">Todos</button>
+    </nav>
+
+    <ul id="ticketList" class="ticket-list"></ul>
+  </aside>
+
+  <!-- Coluna central: chat -->
+  <main class="chat-pane">
+    <div id="chatEmpty" class="chat-empty">
+      <p>Selecione um atendimento para comecar</p>
+    </div>
+
+    <div id="chatContent" class="chat-content hidden">
+      <header class="chat-header">
+        <div class="contact-info">
+          <div class="avatar" id="chatAvatar">?</div>
+          <div>
+            <div class="contact-name" id="chatName">-</div>
+            <div class="contact-number" id="chatNumber">-</div>
+          </div>
+        </div>
+        <div class="chat-actions">
+          <button id="btnPending" class="btn btn-secondary">Marcar pendente</button>
+          <button id="btnClose" class="btn btn-danger">Encerrar</button>
+        </div>
+      </header>
+
+      <div id="messagesList" class="messages-list"></div>
+
+      <form id="sendForm" class="send-form">
+        <input id="sendInput" type="text" placeholder="Digite uma mensagem..." autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Coluna direita: agendamento -->
+  <aside class="schedule-pane">
+    <div id="scheduleEmpty" class="chat-empty">
+      <p>Selecione um atendimento para ver os agendamentos</p>
+    </div>
+
+    <div id="scheduleContent" class="hidden">
+      <header class="pane-header">
+        <h2>Agendamentos</h2>
+      </header>
+
+      <ul id="appointmentList" class="appointment-list"></ul>
+
+      <form id="appointmentForm" class="appointment-form">
+        <h3>Novo agendamento</h3>
+        <label>
+          Data e hora
+          <input id="appointmentDate" type="datetime-local" required />
+        </label>
+        <label>
+          Observacoes
+          <textarea id="appointmentNotes" rows="2" placeholder="Ex: retorno, exame..."></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Agendar consulta</button>
+      </form>
+    </div>
+  </aside>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/painel.js"></script>
+</body>
+</html>

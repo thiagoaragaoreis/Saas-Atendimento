@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite para desenvolvimento inicial; migrar para "postgresql" em producao
+  // basta trocar o provider e o DATABASE_URL, o schema ja e compativel.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id           Int           @id @default(autoincrement())
+  name         String
+  createdAt    DateTime      @default(now())
+  contacts     Contact[]
+  tickets      Ticket[]
+  appointments Appointment[]
+}
+
+model Contact {
+  id           Int           @id @default(autoincrement())
+  name         String
+  number       String
+  companyId    Int
+  company      Company       @relation(fields: [companyId], references: [id])
+  tickets      Ticket[]
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([number, companyId])
+}
+
+model Ticket {
+  id             Int       @id @default(autoincrement())
+  status         String    @default("open") // open, pending, closed
+  lastMessage    String?
+  unreadMessages Int       @default(0)
+  companyId      Int
+  company        Company   @relation(fields: [companyId], references: [id])
+  contactId      Int
+  contact        Contact   @relation(fields: [contactId], references: [id])
+  messages       Message[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  body      String
+  fromMe    Boolean  @default(false)
+  read      Boolean  @default(false)
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Appointment {
+  id             Int       @id @default(autoincrement())
+  date           DateTime
+  status         String    @default("scheduled") // scheduled, confirmed, cancelled, done
+  notes          String?
+  reminderSentAt DateTime?
+  contactId      Int
+  contact        Contact   @relation(fields: [contactId], references: [id])
+  companyId      Int
+  company        Company   @relation(fields: [companyId], references: [id])
+  createdAt      DateTime  @default(now())
+}
